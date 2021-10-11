@@ -1,0 +1,28 @@
+{
+  "name": "play-with-google-sheet",
+  "version": "1.0.0",
+  "main": "server.js",
+  "license": "MIT",
+  "scripts": {
+    "start:dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server/server.ts",
+    "build": "tsc",
+    "start": "node dist/server/server.js"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.2",
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.13",
+    "@types/node": "^16.10.3",
+    "googleapis": "39",
+    "nodemon": "^2.0.13",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "path": "^0.12.7"
+  }
+}

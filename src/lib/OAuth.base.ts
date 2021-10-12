@@ -74,7 +74,6 @@ export class OAuthBase implements IOAuthBase {
 
   setCredential(): void {
     const credentials: string = fs.readFileSync(tokenPath, "utf-8");
-    // this.oAuthClient.setCredentials(JSON.parse(credentials));
     this.oAuthClient.setCredentials({
       refresh_token: JSON.parse(credentials).refresh_token,
     });

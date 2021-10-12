@@ -14,7 +14,7 @@ const authRouter = Router();
 const oAuth = new OAuthBase();
 
 /**
- * Intialozing the SpreadSheet class
+ * Initializing the SpreadSheet class
  */
 const spreadsheet = new Spreadsheet();
 

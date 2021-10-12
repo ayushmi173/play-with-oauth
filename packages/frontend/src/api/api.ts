@@ -15,6 +15,7 @@ export async function api<T>(
     data: JSON.stringify(body),
     headers: {
       "Content-type": "application/json",
+      "Access-Control-Allow-Origin": "*",
     },
     method: method as Method,
   };

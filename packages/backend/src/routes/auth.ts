@@ -44,13 +44,10 @@ authRouter.get("/redirect", async function (req, res) {
 });
 
 authRouter.get("/create-sheet", (req, res) => {
-  const oAuth2Client: OAuth2Client | undefined = new google.auth.OAuth2({
-    clientId: clientId,
-    clientSecret: clientSecret,
-  });
-
   oAuth2Client.setCredentials({
-    refresh_token: req.cookies["auth_tokens"].refresh_token,
+    refresh_token:
+      req.cookies["auth_tokens"]?.refresh_token ||
+      "1//0g1OQluRZwCwJCgYIARAAGBASNwF-L9Ir6UQBSxS9J_EF9PxwpJyzDy64GhCuUw1RA2oDTXemoMcdTb03VgbXuH7dp9uNlbEyFW8",
   });
 
   const request: sheets_v4.Params$Resource$Spreadsheets$Create = {
@@ -65,27 +62,26 @@ authRouter.get("/create-sheet", (req, res) => {
     if (err) {
       throw new Error("Can not create new sheet");
     } else {
-      res.send(JSON.stringify(spreadsheet));
+      res.send(JSON.stringify(spreadsheet.data));
     }
   });
 });
 
-authRouter.get("/add-data", async function (req, res) {
+authRouter.post("/add-data", async function (req, res) {
+  console.log("Called", req.cookies["auth_tokens"]);
   oAuth2Client.setCredentials({
-    refresh_token: req.cookies["auth_tokens"].refresh_token,
+    refresh_token:
+      req.cookies["auth_tokens"]?.refresh_token ||
+      "1//0g1OQluRZwCwJCgYIARAAGBASNwF-L9Ir6UQBSxS9J_EF9PxwpJyzDy64GhCuUw1RA2oDTXemoMcdTb03VgbXuH7dp9uNlbEyFW8",
   });
-  const { spreadsheetId } = req.query;
+  const { spreadsheetId, name, email, task } = req.body;
   const params: sheets_v4.Params$Resource$Spreadsheets$Values$Append = {
     spreadsheetId: spreadsheetId as string,
-    range: "Sheet1",
+    range: "Sheet1!A:Z",
     insertDataOption: "INSERT_ROWS",
     valueInputOption: "RAW",
     requestBody: {
-      values: [
-        ["fef", "fefe", "mkgem", "hthyt"],
-        [1, 3, 45, 76, 87],
-        [76, "gety"],
-      ],
+      values: [[name, email, task]],
       majorDimension: "ROWS",
     },
   };
@@ -94,7 +90,7 @@ authRouter.get("/add-data", async function (req, res) {
     .sheets({ version: "v4", auth: oAuth2Client })
     .spreadsheets.values.append(params);
 
-  res.send(response);
+  res.send(response.data);
 });
 
 export { authRouter as AuthRouter };

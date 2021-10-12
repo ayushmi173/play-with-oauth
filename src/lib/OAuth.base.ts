@@ -15,7 +15,7 @@ export interface IOAuthBase {
   /**
    * Authorizing the user
    */
-  authorize(): void;
+  authorize(): Promise<string | undefined>;
 
   /**
    * Returns new token
@@ -31,7 +31,7 @@ export interface IOAuthBase {
   /**
    * return auth client variable
    */
-  getAuthClient(): void;
+  getAuthClient(): OAuth2Client;
 }
 
 export class OAuthBase implements IOAuthBase {

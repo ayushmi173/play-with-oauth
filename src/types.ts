@@ -8,3 +8,11 @@ export type CreateRow = {
   email: string;
   task: string;
 };
+
+export type TokenResponse = {
+  access_token: string;
+  refresh_token: string;
+  instance_url: string;
+  token_type: string;
+  issued_at: string;
+};

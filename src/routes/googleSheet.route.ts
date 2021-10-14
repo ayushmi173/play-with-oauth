@@ -1,48 +1,38 @@
 import { sheets_v4 } from "googleapis";
 import * as fs from "fs";
 import { Router, Request, Response } from "express";
-import { CreateNewSheet, CreateRow } from "../types";
-import { OAuthBase } from "../lib/OAuth.base";
-import { tokenPath } from "../utils/helpers";
-import { Spreadsheet } from "../lib/spreadSheet.base";
+import { CreateNewSheet, CreateRow, TokenResponse } from "../types";
+import { OAuth as GoogleSheetOAuth, Spreadsheet } from "../lib/googleSheet";
+import { OAuth as SalesForceOAuth } from "../lib/salesforce";
+import { googleSheetCredentialPath } from "../utils/helpers";
+import path from "path";
 
-const authRouter = Router();
+const googleSheetRouter = Router();
 
 /**
- * Initializing the OAuthBase class
+ * Initializing the GoogleSheetOAuth class
  */
-const oAuth = new OAuthBase();
+const googleSheetOAuth = new GoogleSheetOAuth();
 
 /**
  * Initializing the SpreadSheet class
  */
 const spreadsheet = new Spreadsheet();
 
-authRouter.get("/", async function (_req: Request, res: Response) {
-  const url = await oAuth.authorize();
-
-  res.send(
-    url
-      ? `<h1>Hey, Let's play with google sheet</h1>
-        <a href=${url}>Login</a>`
-      : "<h1>Already logged in</h1>"
-  );
-});
-
-authRouter.get("/redirect", async function (req: Request, res: Response) {
+googleSheetRouter.get("/redirect", async (req: Request, res: Response) => {
   const code: string = req.query.code as string;
-  const { tokens } = await oAuth.getAuthClient().getToken(code);
+  const { tokens } = await googleSheetOAuth.getAuthClient().getToken(code);
 
-  fs.writeFileSync(tokenPath, JSON.stringify(tokens));
+  fs.writeFileSync(googleSheetCredentialPath, JSON.stringify(tokens));
 
-  oAuth.getAuthClient().setCredentials({
+  googleSheetOAuth.getAuthClient().setCredentials({
     refresh_token: tokens.refresh_token,
   });
 
   res.status(200).send({ status: "ok", isLoggedIn: true });
 });
 
-authRouter.post("/create-sheet", async (req: Request, res: Response) => {
+googleSheetRouter.post("/create-sheet", async (req: Request, res: Response) => {
   try {
     const { title } = req.body as CreateNewSheet;
 
@@ -53,7 +43,7 @@ authRouter.post("/create-sheet", async (req: Request, res: Response) => {
   }
 });
 
-authRouter.post("/create-row", async function (req: Request, res: Response) {
+googleSheetRouter.post("/create-row", async (req: Request, res: Response) => {
   try {
     const { spreadsheetId, name, email, task } = req.body as CreateRow;
 
@@ -74,4 +64,4 @@ authRouter.post("/create-row", async function (req: Request, res: Response) {
   }
 });
 
-export { authRouter as AuthRouter };
+export { googleSheetRouter as GoogleSheetRouter };

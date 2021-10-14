@@ -1,5 +1,6 @@
 import { google, sheets_v4 } from "googleapis";
-import { OAuthBase } from "./OAuth.base";
+
+import { OAuth } from "./oAuth";
 
 export interface ISpreadSheet {
   /**
@@ -20,10 +21,10 @@ export interface ISpreadSheet {
 }
 
 export class Spreadsheet {
-  private oAuth: OAuthBase;
+  private oAuth: OAuth;
 
   constructor() {
-    this.oAuth = new OAuthBase();
+    this.oAuth = new OAuth();
   }
 
   async createRow(

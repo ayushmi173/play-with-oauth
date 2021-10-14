@@ -2,16 +2,16 @@ import * as fs from "fs";
 import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
 
-import { tokenPath } from "../utils/helpers";
+import { googleSheetCredentialPath } from "../../utils/helpers";
 
 import {
-  CLIENT_ID,
-  CLIENT_SECRET,
-  REDIRECT_URILS,
-  SCOPES,
-} from "../utils/config";
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URIS,
+  GOOGLE_SCOPES,
+} from "../../utils/config";
 
-export interface IOAuthBase {
+export interface IOAuth {
   /**
    * Authorizing the user
    */
@@ -34,14 +34,14 @@ export interface IOAuthBase {
   getAuthClient(): OAuth2Client;
 }
 
-export class OAuthBase implements IOAuthBase {
+export class OAuth implements IOAuth {
   private oAuthClient: OAuth2Client;
 
   constructor() {
     const oAuthClient = new google.auth.OAuth2({
-      clientId: CLIENT_ID,
-      clientSecret: CLIENT_SECRET,
-      redirectUri: REDIRECT_URILS[0],
+      clientId: GOOGLE_CLIENT_ID,
+      clientSecret: GOOGLE_CLIENT_SECRET,
+      redirectUri: GOOGLE_REDIRECT_URIS[0],
     });
     this.oAuthClient = oAuthClient;
   }
@@ -49,7 +49,7 @@ export class OAuthBase implements IOAuthBase {
   async authorize(): Promise<string | undefined> {
     const tokenUrl: string | undefined = await new Promise((resolve) =>
       fs.readFile(
-        tokenPath,
+        googleSheetCredentialPath,
         { encoding: "utf8" },
         (err: Error, credentials: string) => {
           if (err) {
@@ -66,14 +66,17 @@ export class OAuthBase implements IOAuthBase {
   getNewToken(oAuth2Client: OAuth2Client): string {
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
-      scope: SCOPES,
+      scope: GOOGLE_SCOPES,
       prompt: "consent",
     });
     return authUrl;
   }
 
   setCredential(): void {
-    const credentials: string = fs.readFileSync(tokenPath, "utf-8");
+    const credentials: string = fs.readFileSync(
+      googleSheetCredentialPath,
+      "utf-8"
+    );
     this.oAuthClient.setCredentials({
       refresh_token: JSON.parse(credentials).refresh_token,
     });

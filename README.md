@@ -1,1 +1,1 @@
-Using google sheet api for auth and api manipulation 
+Using OAuth 2.0 authentication Google Sheet, Salesforce

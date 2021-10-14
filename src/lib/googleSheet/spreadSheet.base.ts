@@ -20,7 +20,7 @@ export interface ISpreadSheet {
   ): Promise<sheets_v4.Schema$AppendValuesResponse>;
 }
 
-export class Spreadsheet {
+export class Spreadsheet implements ISpreadSheet {
   private oAuth: OAuth;
 
   constructor() {

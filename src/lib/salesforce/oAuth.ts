@@ -12,6 +12,7 @@ import {
   SALESFORCE_SANDBOX_HOST,
 } from "../../utils/config";
 import { salesforceCredentialPath } from "../../utils/helpers";
+import { Salesforce } from "./salesforce.base";
 
 export interface IOAuth {
   /**
@@ -21,19 +22,26 @@ export interface IOAuth {
   authorize(isSandbox: boolean): string;
 
   /**
-   *  Getting token credentials
+   *  Setting token credentials on file
    * @param code extracted code from callback url
    * @param isSandbox checking for authorize url is sandbox's url or not
    */
-  getToken(code: string): Promise<TokenResponse>;
+  setToken(code: string): Promise<TokenResponse>;
+
+  /**
+   * returns access token
+   */
+  getAccessToken(): Promise<any>;
 }
 
 export class OAuth implements IOAuth {
   private isSandbox: boolean;
-  private accessToken: string;
+
+  private salesforceBase: Salesforce;
 
   constructor() {
     this.isSandbox = false;
+    this.salesforceBase = new Salesforce();
   }
 
   authorize(isSandbox: boolean): string {
@@ -48,7 +56,7 @@ export class OAuth implements IOAuth {
     return authUrl;
   }
 
-  async getToken(code: string): Promise<TokenResponse> {
+  async setToken(code: string): Promise<TokenResponse> {
     try {
       const config: AxiosRequestConfig = {
         method: "POST",
@@ -72,9 +80,16 @@ export class OAuth implements IOAuth {
       );
       const { data } = response as { data: TokenResponse };
       fs.writeFileSync(salesforceCredentialPath, JSON.stringify(data));
-      this.accessToken = data.access_token;
 
       return data as TokenResponse;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  async getAccessToken(): Promise<any> {
+    try {
+      return this.salesforceBase.getTokenCredentials();
     } catch (error) {
       throw new Error(error.message);
     }

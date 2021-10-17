@@ -56,7 +56,16 @@ export class OAuth implements IOAuth {
             return resolve(this.getNewToken(this.oAuthClient));
           }
           this.oAuthClient.setCredentials(JSON.parse(credentials));
-          return resolve(undefined);
+          return 
+          
+          
+          
+          
+          
+          
+          
+          
+          resolve(undefined);
         }
       )
     );

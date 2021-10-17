@@ -7,9 +7,11 @@
     "start:dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server/server.ts",
     "build": "rm -rf -- dist && tsc",
     "start": "node dist/server/server.js",
-    "lint": "eslint src",
+    "lint": "eslint --ignore-path .gitignore --ext .js,.ts,.tsx .",
     "prettier:fix": "prettier --write",
-    "prettier:check": "prettier --check ."
+    "check:format": "yarn prettier --list-different",
+    "prettier:check": "prettier --check",
+    "pre-commit-lint": "yarn build && yarn lint-staged"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.2",
@@ -43,6 +45,7 @@
     "src/*{ts,tsx}": [
       "yarn prettier:fix",
       "yarn lint"
-    ]
+    ],
+    "//": "https://levelup.gitconnected.com/add-husky-lint-staged-to-react-typescript-b634314a9739"
   }
 }

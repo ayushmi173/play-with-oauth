@@ -1,11 +1,9 @@
-import { sheets_v4 } from "googleapis";
-import * as fs from "fs";
-import { Router, Request, Response } from "express";
-import { CreateNewSheet, CreateRow, TokenResponse } from "../types";
-import { OAuth as GoogleSheetOAuth, Spreadsheet } from "../lib/googleSheet";
-import { OAuth as SalesForceOAuth } from "../lib/salesforce";
-import { googleSheetCredentialPath } from "../utils/helpers";
-import path from "path";
+import { sheets_v4 } from 'googleapis';
+import * as fs from 'fs';
+import { Router, Request, Response } from 'express';
+import { CreateNewSheet, CreateRow } from '../types';
+import { OAuth as GoogleSheetOAuth, Spreadsheet } from '../lib/googleSheet';
+import { googleSheetCredentialPath } from '../utils/helpers';
 
 const googleSheetRouter = Router();
 
@@ -19,7 +17,7 @@ const googleSheetOAuth = new GoogleSheetOAuth();
  */
 const spreadsheet = new Spreadsheet();
 
-googleSheetRouter.get("/redirect", async (req: Request, res: Response) => {
+googleSheetRouter.get('/redirect', async (req: Request, res: Response) => {
   const code: string = req.query.code as string;
   const { tokens } = await googleSheetOAuth.getAuthClient().getToken(code);
 
@@ -29,10 +27,10 @@ googleSheetRouter.get("/redirect", async (req: Request, res: Response) => {
     refresh_token: tokens.refresh_token,
   });
 
-  res.status(200).send({ status: "ok", isLoggedIn: true });
+  res.status(200).send({ status: 'ok', isLoggedIn: true });
 });
 
-googleSheetRouter.post("/create-sheet", async (req: Request, res: Response) => {
+googleSheetRouter.post('/create-sheet', async (req: Request, res: Response) => {
   try {
     const { title } = req.body as CreateNewSheet;
 
@@ -43,18 +41,18 @@ googleSheetRouter.post("/create-sheet", async (req: Request, res: Response) => {
   }
 });
 
-googleSheetRouter.post("/create-row", async (req: Request, res: Response) => {
+googleSheetRouter.post('/create-row', async (req: Request, res: Response) => {
   try {
     const { spreadsheetId, name, email, task } = req.body as CreateRow;
 
     const params: sheets_v4.Params$Resource$Spreadsheets$Values$Append = {
       spreadsheetId: spreadsheetId as string,
-      range: "Sheet1!A:Z",
-      insertDataOption: "INSERT_ROWS",
-      valueInputOption: "RAW",
+      range: 'Sheet1!A:Z',
+      insertDataOption: 'INSERT_ROWS',
+      valueInputOption: 'RAW',
       requestBody: {
         values: [[name, email, task]],
-        majorDimension: "ROWS",
+        majorDimension: 'ROWS',
       },
     };
     const createdRow = await spreadsheet.createRow(params);

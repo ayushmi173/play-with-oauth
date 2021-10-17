@@ -1,15 +1,15 @@
-import * as fs from "fs";
-import { OAuth2Client } from "google-auth-library";
-import { google } from "googleapis";
+import * as fs from 'fs';
+import { OAuth2Client } from 'google-auth-library';
+import { google } from 'googleapis';
 
-import { googleSheetCredentialPath } from "../../utils/helpers";
+import { googleSheetCredentialPath } from '../../utils/helpers';
 
 import {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
   GOOGLE_REDIRECT_URIS,
   GOOGLE_SCOPES,
-} from "../../utils/config";
+} from '../../utils/config';
 
 export interface IOAuth {
   /**
@@ -50,7 +50,7 @@ export class OAuth implements IOAuth {
     const tokenUrl: string | undefined = await new Promise((resolve) =>
       fs.readFile(
         googleSheetCredentialPath,
-        { encoding: "utf8" },
+        { encoding: 'utf8' },
         (err: Error, credentials: string) => {
           if (err) {
             return resolve(this.getNewToken(this.oAuthClient));
@@ -65,9 +65,9 @@ export class OAuth implements IOAuth {
 
   getNewToken(oAuth2Client: OAuth2Client): string {
     const authUrl = oAuth2Client.generateAuthUrl({
-      access_type: "offline",
+      access_type: 'offline',
       scope: GOOGLE_SCOPES,
-      prompt: "consent",
+      prompt: 'consent',
     });
     return authUrl;
   }
@@ -75,7 +75,7 @@ export class OAuth implements IOAuth {
   setCredential(): void {
     const credentials: string = fs.readFileSync(
       googleSheetCredentialPath,
-      "utf-8"
+      'utf-8'
     );
     this.oAuthClient.setCredentials({
       refresh_token: JSON.parse(credentials).refresh_token,

@@ -1,8 +1,8 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import querystring from "querystring";
-import * as fs from "fs";
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import querystring from 'querystring';
+import * as fs from 'fs';
 
-import { TokenResponse } from "../../types";
+import { TokenResponse } from '../../types';
 
 import {
   SALESFORCE_CLIENT_ID,
@@ -10,9 +10,9 @@ import {
   SALESFORCE_PROD_HOST,
   SALESFORCE_REDIRECT_URI,
   SALESFORCE_SANDBOX_HOST,
-} from "../../utils/config";
-import { salesforceCredentialPath } from "../../utils/helpers";
-import { Salesforce } from "./salesforce.base";
+} from '../../utils/config';
+import { salesforceCredentialPath } from '../../utils/helpers';
+import { Salesforce } from './salesforce.base';
 
 export interface IOAuth {
   /**
@@ -31,7 +31,7 @@ export interface IOAuth {
   /**
    * returns access token
    */
-  getAccessToken(): Promise<any>;
+  getAccessToken(): Promise<TokenResponse>;
 }
 
 export class OAuth implements IOAuth {
@@ -45,7 +45,7 @@ export class OAuth implements IOAuth {
   }
 
   authorize(isSandbox: boolean): string {
-    const authUrl: string = `${
+    const authUrl = `${
       isSandbox ? SALESFORCE_SANDBOX_HOST : SALESFORCE_PROD_HOST
     }/services/oauth2/authorize?client_id=${SALESFORCE_CLIENT_ID}&redirect_uri=${encodeURIComponent(
       SALESFORCE_REDIRECT_URI
@@ -59,16 +59,16 @@ export class OAuth implements IOAuth {
   async setToken(code: string): Promise<TokenResponse> {
     try {
       const config: AxiosRequestConfig = {
-        method: "POST",
+        method: 'POST',
         data: querystring.stringify({
-          grant_type: "authorization_code",
+          grant_type: 'authorization_code',
           code: code,
           client_id: SALESFORCE_CLIENT_ID,
           client_secret: SALESFORCE_CLIENT_SECRET,
           redirect_uri: SALESFORCE_REDIRECT_URI,
         }),
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
       };
 
@@ -87,7 +87,7 @@ export class OAuth implements IOAuth {
     }
   }
 
-  async getAccessToken(): Promise<any> {
+  async getAccessToken(): Promise<TokenResponse> {
     try {
       return this.salesforceBase.getTokenCredentials();
     } catch (error) {

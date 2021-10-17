@@ -6,7 +6,10 @@
   "scripts": {
     "start:dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server/server.ts",
     "build": "rm -rf -- dist && tsc",
-    "start": "node dist/server/server.js"
+    "start": "node dist/server/server.js",
+    "lint": "eslint src",
+    "prettier:fix": "prettier --write",
+    "prettier:check": "prettier --check ."
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.2",
@@ -15,18 +18,31 @@
     "@types/jsforce": "^1.9.35",
     "@types/node": "^16.10.3",
     "googleapis": "39",
+    "husky": "^7.0.2",
+    "lint-staged": "^11.2.3",
     "nodemon": "^2.0.13",
+    "prettier": "^2.4.1",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3"
   },
   "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
     "axios": "^0.23.0",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
+    "eslint": "^8.0.1",
+    "eslint-plugin-react": "^7.26.1",
     "express": "^4.17.1",
     "path": "^0.12.7",
     "pug": "^3.0.2",
     "querystring": "^0.2.1"
+  },
+  "lint-staged": {
+    "src/*{ts,tsx}": [
+      "yarn prettier:fix",
+      "yarn lint"
+    ]
   }
 }

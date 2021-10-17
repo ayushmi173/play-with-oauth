@@ -1,4 +1,6 @@
-require("dotenv").config();
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export const PORT = process.env.PORT;
 
@@ -8,10 +10,10 @@ export const PORT = process.env.PORT;
 export const GOOGLE_CLIENT_ID: string = process.env.GOOGLE_CLIENT_ID;
 export const GOOGLE_CLIENT_SECRET: string = process.env.GOOGLE_CLIENT_SECRET;
 export const GOOGLE_REDIRECT_URIS: string[] = [
-  "http://localhost:7000/redirect",
+  'http://localhost:7000/redirect',
 ];
 export const GOOGLE_SCOPES: string[] = [
-  "https://www.googleapis.com/auth/spreadsheets",
+  'https://www.googleapis.com/auth/spreadsheets',
 ];
 
 /**

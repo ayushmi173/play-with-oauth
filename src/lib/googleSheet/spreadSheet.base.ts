@@ -1,6 +1,6 @@
-import { google, sheets_v4 } from "googleapis";
+import { google, sheets_v4 } from 'googleapis';
 
-import { OAuth } from "./oAuth";
+import { OAuth } from './oAuth';
 
 export interface ISpreadSheet {
   /**
@@ -33,7 +33,7 @@ export class Spreadsheet implements ISpreadSheet {
     this.oAuth.setCredential();
 
     const response = await google
-      .sheets({ version: "v4", auth: this.oAuth.getAuthClient() })
+      .sheets({ version: 'v4', auth: this.oAuth.getAuthClient() })
       .spreadsheets.values.append(params);
 
     return response.data;
@@ -52,7 +52,7 @@ export class Spreadsheet implements ISpreadSheet {
     };
 
     const response = await google
-      .sheets({ version: "v4", auth: this.oAuth.getAuthClient() })
+      .sheets({ version: 'v4', auth: this.oAuth.getAuthClient() })
       .spreadsheets.create(request);
 
     return response.data;

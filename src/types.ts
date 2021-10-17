@@ -16,3 +16,9 @@ export type TokenResponse = {
   token_type: string;
   issued_at: string;
 };
+
+export type CreateNewDocument = {
+  id: string;
+  error: [];
+  success: boolean;
+};

@@ -1,10 +1,10 @@
-import { Router, Response, Request } from "express";
-import path from "path";
+import { Router, Response, Request } from 'express';
+import path from 'path';
 
-import { OAuth as GoogleSheetOAuth } from "../lib/googleSheet";
-import { OAuth as SalesForceOAuth } from "../lib/salesforce";
-import { GoogleSheetRouter } from "./googleSheet.route";
-import { SalesforceRouter } from "../routes/salesforce.route";
+import { OAuth as GoogleSheetOAuth } from '../lib/googleSheet';
+import { OAuth as SalesForceOAuth } from '../lib/salesforce';
+import { GoogleSheetRouter } from './googleSheet.route';
+import { SalesforceRouter } from '../routes/salesforce.route';
 
 const rootRouter = Router();
 
@@ -18,23 +18,23 @@ const googleSheetOAuth = new GoogleSheetOAuth();
  */
 const salesForceOAuth = new SalesForceOAuth();
 
-rootRouter.get("/", async (_req: Request, res: Response) => {
+rootRouter.get('/', async (_req: Request, res: Response) => {
   const googleSheetAuthUrl = await googleSheetOAuth.authorize();
 
-  res.render(path.join(__dirname, "../views/index.pug"), {
+  res.render(path.join(__dirname, '../views/index.pug'), {
     googleSheet: {
-      url: googleSheetAuthUrl || "/",
+      url: googleSheetAuthUrl || '/',
       message: googleSheetAuthUrl
-        ? "Login with Google Sheet"
-        : "Already logged in with google sheet",
+        ? 'Login with Google Sheet'
+        : 'Already logged in with google sheet',
     },
     salesforceSandbox: {
       url: salesForceOAuth.authorize(true),
-      message: "Login with Salesforce Sandbox",
+      message: 'Login with Salesforce Sandbox',
     },
     salesforceProd: {
       url: salesForceOAuth.authorize(false),
-      message: "Login with Salesforce Professional Edition",
+      message: 'Login with Salesforce Professional Edition',
     },
   });
 });

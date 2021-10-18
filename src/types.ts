@@ -22,3 +22,8 @@ export type CreateNewDocument = {
   error: [];
   success: boolean;
 };
+
+export type ApiError = {
+  status: string;
+  message: string;
+};

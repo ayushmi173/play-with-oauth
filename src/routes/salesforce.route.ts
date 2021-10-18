@@ -23,12 +23,23 @@ salesforceRouter.get('/callback', async (req: Request, res: Response) => {
   res.send({ status: 'ok', token: token });
 });
 
-salesforceRouter.post(
-  '/create-document',
-  async (_req: Request, res: Response) => {
-    const response = await salesforceBase.createDocument();
-    res.send({ createdDocument: response });
+salesforceRouter.post('/create-record', async (req: Request, res: Response) => {
+  const { sandbox } = req.query as { sandbox: string };
+  const data = req.body;
+
+  const response = await salesforceBase.createRecord(JSON.parse(sandbox), data);
+
+  let result = undefined;
+
+  if ('status' in response) {
+    result = {
+      status: response.status,
+      message: response.message,
+    };
   }
-);
+  result = { createRecord: response };
+
+  return res.send(result);
+});
 
 export { salesforceRouter as SalesforceRouter };

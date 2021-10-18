@@ -11,7 +11,10 @@ import {
   SALESFORCE_REDIRECT_URI,
   SALESFORCE_SANDBOX_HOST,
 } from '../../utils/config';
-import { salesforceCredentialPath } from '../../utils/helpers';
+import {
+  salesforceProdCredentialPath,
+  salesforceSandboxCredentialPath,
+} from '../../utils/helpers';
 import { Salesforce } from './salesforce.base';
 
 export interface IOAuth {
@@ -79,7 +82,12 @@ export class OAuth implements IOAuth {
         config
       );
       const { data } = response as { data: TokenResponse };
-      fs.writeFileSync(salesforceCredentialPath, JSON.stringify(data));
+      fs.writeFileSync(
+        this.isSandbox
+          ? salesforceSandboxCredentialPath
+          : salesforceProdCredentialPath,
+        JSON.stringify(data)
+      );
 
       return data as TokenResponse;
     } catch (error) {

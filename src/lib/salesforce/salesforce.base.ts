@@ -1,8 +1,11 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import * as fs from 'fs';
 
-import { salesforceCredentialPath } from '../../utils/helpers';
-import { CreateNewDocument, TokenResponse } from '../../types';
+import {
+  salesforceProdCredentialPath,
+  salesforceSandboxCredentialPath,
+} from '../../utils/helpers';
+import { ApiError, CreateNewDocument, TokenResponse } from '../../types';
 import querystring from 'querystring';
 import {
   SALESFORCE_CLIENT_ID,
@@ -10,44 +13,47 @@ import {
 } from '../../utils/config';
 
 export class Salesforce {
-  async createDocument(): Promise<CreateNewDocument> {
+  async createRecord(
+    isSandbox: boolean,
+    data: Record<string, string>
+  ): Promise<CreateNewDocument | ApiError> {
     try {
       const config: AxiosRequestConfig = {
         method: 'POST',
-        data: querystring.stringify({
-          Description: 'Marketing by Ayush Mishra',
-          Keywords: 'marketing,sales,update',
-          FolderId: '005D0000001GiU7',
-          Name: 'Marketing By Ayush Mishra',
-          Type: 'pdf',
-        }),
+        data: { ...data },
         headers: {
           Authorization: `Bearer ${
-            (await this.getTokenCredentials()).access_token
+            (await this.getTokenCredentials(isSandbox)).access_token
           }`,
           'Content-Type': 'application/json',
         },
       };
 
+      const instanceUrl = (await this.getTokenCredentials(isSandbox))
+        .instance_url;
+
       const response: AxiosResponse = await axios(
-        `${
-          (
-            await this.getTokenCredentials()
-          ).instance_url
-        }/services/data/v53.0/sobjects/Document`,
+        `${instanceUrl}/services/data/v20.0/sobjects/Account`,
         config
       );
-
       return response.data as CreateNewDocument;
     } catch (error) {
-      throw new Error(error.message);
+      return {
+        message: error.response?.statusText || error.message,
+        status: error.response?.status,
+      } as ApiError;
     }
   }
 
-  async getTokenCredentials(): Promise<TokenResponse> {
+  async getTokenCredentials(isSandbox?: boolean): Promise<TokenResponse> {
     try {
       const salesforceCredential: TokenResponse = JSON.parse(
-        fs.readFileSync(salesforceCredentialPath, 'utf-8')
+        fs.readFileSync(
+          isSandbox
+            ? salesforceSandboxCredentialPath
+            : salesforceProdCredentialPath,
+          'utf-8'
+        )
       );
 
       const interospectConfig: AxiosRequestConfig = {
@@ -77,10 +83,10 @@ export class Salesforce {
       const requestConfig: AxiosRequestConfig = {
         method: 'POST',
         data: querystring.stringify({
+          grant_type: 'refresh_token',
           client_id: SALESFORCE_CLIENT_ID,
           client_secret: SALESFORCE_CLIENT_SECRET,
-          grant_type: 'refresh_token',
-          refresh_token: salesforceCredential.refresh_token,
+          refresh_token: encodeURIComponent(salesforceCredential.refresh_token),
         }),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -91,7 +97,12 @@ export class Salesforce {
         `${salesforceCredential.instance_url}/services/oauth2/token`,
         requestConfig
       );
-      fs.writeFileSync(salesforceCredentialPath, JSON.stringify(response.data));
+      fs.writeFileSync(
+        isSandbox
+          ? salesforceSandboxCredentialPath
+          : salesforceProdCredentialPath,
+        JSON.stringify(response.data)
+      );
       return response.data as TokenResponse;
     } catch (error) {
       throw new Error(error.message);

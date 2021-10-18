@@ -5,7 +5,12 @@ export const googleSheetCredentialPath = path.join(
   '../credentials/googleSheet.credential.json'
 );
 
-export const salesforceCredentialPath = path.join(
+export const salesforceProdCredentialPath = path.join(
   __dirname,
-  '../credentials/salesforce.credential.json'
+  '../credentials/salesforceProd.credential.json'
+);
+
+export const salesforceSandboxCredentialPath = path.join(
+  __dirname,
+  '../credentials/salesforceSandbox.credential.json'
 );

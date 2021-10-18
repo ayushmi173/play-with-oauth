@@ -10,9 +10,37 @@ import querystring from 'querystring';
 import {
   SALESFORCE_CLIENT_ID,
   SALESFORCE_CLIENT_SECRET,
+  SALESFORCE_PROD_HOST,
+  SALESFORCE_REDIRECT_URI,
+  SALESFORCE_SANDBOX_HOST,
 } from '../../utils/config';
 
-export class Salesforce {
+export interface ISalesforce {
+  /**
+   * creating the record in account type
+   * @param isSandbox is sandbox account
+   * @param data requested body for creating the record
+   */
+  createRecord(
+    isSandbox: boolean,
+    data: Record<string, string>
+  ): Promise<CreateNewDocument | ApiError>;
+
+  /**
+   * get token credentials
+   * @param isSandbox is sandbox account
+   */
+  getTokenCredentials(isSandbox?: boolean): Promise<TokenResponse>;
+
+  /**
+   *  set the token after authorize
+   * @param code code in callback query
+   * @param isSandbox  is sandbox account
+   */
+  setTokenInFile(code: string, isSandbox: boolean): Promise<TokenResponse>;
+}
+
+export class Salesforce implements ISalesforce {
   async createRecord(
     isSandbox: boolean,
     data: Record<string, string>
@@ -107,5 +135,40 @@ export class Salesforce {
     } catch (error) {
       throw new Error(error.message);
     }
+  }
+
+  async setTokenInFile(
+    code: string,
+    isSandbox: boolean
+  ): Promise<TokenResponse> {
+    const config: AxiosRequestConfig = {
+      method: 'POST',
+      data: querystring.stringify({
+        grant_type: 'authorization_code',
+        code: code,
+        client_id: SALESFORCE_CLIENT_ID,
+        client_secret: SALESFORCE_CLIENT_SECRET,
+        redirect_uri: SALESFORCE_REDIRECT_URI,
+      }),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    };
+
+    const response: AxiosResponse = await axios(
+      `${
+        isSandbox ? SALESFORCE_SANDBOX_HOST : SALESFORCE_PROD_HOST
+      }/services/oauth2/token`,
+      config
+    );
+    const { data } = response as { data: TokenResponse };
+    fs.writeFileSync(
+      isSandbox
+        ? salesforceSandboxCredentialPath
+        : salesforceProdCredentialPath,
+      JSON.stringify(data)
+    );
+
+    return data;
   }
 }

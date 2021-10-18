@@ -1,20 +1,12 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import querystring from 'querystring';
-import * as fs from 'fs';
-
 import { TokenResponse } from '../../types';
 
 import {
   SALESFORCE_CLIENT_ID,
-  SALESFORCE_CLIENT_SECRET,
   SALESFORCE_PROD_HOST,
   SALESFORCE_REDIRECT_URI,
   SALESFORCE_SANDBOX_HOST,
 } from '../../utils/config';
-import {
-  salesforceProdCredentialPath,
-  salesforceSandboxCredentialPath,
-} from '../../utils/helpers';
+
 import { Salesforce } from './salesforce.base';
 
 export interface IOAuth {
@@ -61,34 +53,10 @@ export class OAuth implements IOAuth {
 
   async setToken(code: string): Promise<TokenResponse> {
     try {
-      const config: AxiosRequestConfig = {
-        method: 'POST',
-        data: querystring.stringify({
-          grant_type: 'authorization_code',
-          code: code,
-          client_id: SALESFORCE_CLIENT_ID,
-          client_secret: SALESFORCE_CLIENT_SECRET,
-          redirect_uri: SALESFORCE_REDIRECT_URI,
-        }),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      };
-
-      const response: AxiosResponse = await axios(
-        `${
-          this.isSandbox ? SALESFORCE_SANDBOX_HOST : SALESFORCE_PROD_HOST
-        }/services/oauth2/token`,
-        config
-      );
-      const { data } = response as { data: TokenResponse };
-      fs.writeFileSync(
+      const data = await this.salesforceBase.setTokenInFile(
+        code,
         this.isSandbox
-          ? salesforceSandboxCredentialPath
-          : salesforceProdCredentialPath,
-        JSON.stringify(data)
       );
-
       return data as TokenResponse;
     } catch (error) {
       throw new Error(error.message);

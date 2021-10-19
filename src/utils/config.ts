@@ -27,3 +27,13 @@ export const SALESFORCE_REDIRECT_URI: string =
 export const SALESFORCE_PROD_HOST: string = process.env.SALESFORCE_PROD_HOST;
 export const SALESFORCE_SANDBOX_HOST: string =
   process.env.SALESFORCE_SANDBOX_HOST;
+
+/**
+ * Mongo DB database config
+ */
+export const MONGO_DB_PORT = Number(process.env.MONGO_DB_PORT);
+export const MONGO_DB_USERNAME: string = process.env.MONGO_DB_USERNAME;
+export const MONGO_DB_PASSWORD: string = process.env.MONGO_DB_PASSWORD;
+export const MONGO_DB_DATABASE: string = process.env.MONGO_DB_DATABASE;
+export const MONGO_DB_REMOTE_URI = `mongodb+srv://${MONGO_DB_USERNAME}:${MONGO_DB_PASSWORD}@cluster0.ngpvt.mongodb.net/${MONGO_DB_DATABASE}?retryWrites=true&w=majority`;
+export const MONGO_DB_LOCAL_URI = `mongodb://localhost:${MONGO_DB_PORT}/${MONGO_DB_DATABASE}`;

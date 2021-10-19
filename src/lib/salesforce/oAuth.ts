@@ -1,3 +1,4 @@
+import { ISalesforceAuth } from '../../schema/salesforceAuth.schema';
 import { TokenResponse } from '../../types';
 
 import {
@@ -21,12 +22,14 @@ export interface IOAuth {
    * @param code extracted code from callback url
    * @param isSandbox checking for authorize url is sandbox's url or not
    */
-  setToken(code: string): Promise<TokenResponse>;
+  setToken(code: string): Promise<ISalesforceAuth>;
 
   /**
-   * returns access token
+   * return accesstoken cred
+   * @param isSandbox checking for authorize url is sandbox's url or not
+   * @param id salesforce auth document id
    */
-  getAccessToken(): Promise<TokenResponse>;
+  getAccessToken(isSandbox: boolean, id: string): Promise<ISalesforceAuth>;
 }
 
 export class OAuth implements IOAuth {
@@ -51,21 +54,24 @@ export class OAuth implements IOAuth {
     return authUrl;
   }
 
-  async setToken(code: string): Promise<TokenResponse> {
+  async setToken(code: string): Promise<ISalesforceAuth> {
     try {
-      const data = await this.salesforceBase.setTokenInFile(
+      const data = await this.salesforceBase.setAuthorizedToken(
         code,
         this.isSandbox
       );
-      return data as TokenResponse;
+      return data as ISalesforceAuth;
     } catch (error) {
       throw new Error(error.message);
     }
   }
 
-  async getAccessToken(): Promise<TokenResponse> {
+  async getAccessToken(
+    isSandbox: boolean,
+    id: string
+  ): Promise<ISalesforceAuth> {
     try {
-      return this.salesforceBase.getTokenCredentials();
+      return this.salesforceBase.getTokenCredentials(isSandbox, id);
     } catch (error) {
       throw new Error(error.message);
     }

@@ -1,10 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import * as fs from 'fs';
 
-import {
-  salesforceProdCredentialPath,
-  salesforceSandboxCredentialPath,
-} from '../../utils/helpers';
 import { ApiError, CreateNewDocument, TokenResponse } from '../../types';
 import querystring from 'querystring';
 import {
@@ -15,35 +10,45 @@ import {
   SALESFORCE_SANDBOX_HOST,
 } from '../../utils/config';
 
+import SalesforceAuth, {
+  ISalesforceAuth,
+} from '../../schema/salesforceAuth.schema';
 export interface ISalesforce {
   /**
    * creating the record in account type
    * @param isSandbox is sandbox account
+   * @param id auth credential id
    * @param data requested body for creating the record
    */
   createRecord(
     isSandbox: boolean,
+    id: string,
     data: Record<string, string>
   ): Promise<CreateNewDocument | ApiError>;
 
   /**
    * get token credentials
    * @param isSandbox is sandbox account
+   * @param id auth credential id
    */
-  getTokenCredentials(isSandbox?: boolean): Promise<TokenResponse>;
+  getTokenCredentials(isSandbox: boolean, id: string): Promise<ISalesforceAuth>;
 
   /**
    *  set the token after authorize
    * @param code code in callback query
    * @param isSandbox  is sandbox account
    */
-  setTokenInFile(code: string, isSandbox: boolean): Promise<TokenResponse>;
+  setAuthorizedToken(
+    code: string,
+    isSandbox: boolean
+  ): Promise<ISalesforceAuth>;
 }
 
 export class Salesforce implements ISalesforce {
   async createRecord(
     isSandbox: boolean,
-    data: Record<string, string>
+    id: string,
+    data: Record<string, string> | { name: string }
   ): Promise<CreateNewDocument | ApiError> {
     try {
       const config: AxiosRequestConfig = {
@@ -51,14 +56,14 @@ export class Salesforce implements ISalesforce {
         data: { ...data },
         headers: {
           Authorization: `Bearer ${
-            (await this.getTokenCredentials(isSandbox)).access_token
+            (await this.getTokenCredentials(isSandbox, id)).accessToken
           }`,
           'Content-Type': 'application/json',
         },
       };
 
-      const instanceUrl = (await this.getTokenCredentials(isSandbox))
-        .instance_url;
+      const instanceUrl = (await this.getTokenCredentials(isSandbox, id))
+        .instanceUrl;
 
       const response: AxiosResponse = await axios(
         `${instanceUrl}/services/data/v20.0/sobjects/Account`,
@@ -73,21 +78,19 @@ export class Salesforce implements ISalesforce {
     }
   }
 
-  async getTokenCredentials(isSandbox?: boolean): Promise<TokenResponse> {
+  async getTokenCredentials(
+    isSandbox: boolean,
+    id: string
+  ): Promise<ISalesforceAuth> {
     try {
-      const salesforceCredential: TokenResponse = JSON.parse(
-        fs.readFileSync(
-          isSandbox
-            ? salesforceSandboxCredentialPath
-            : salesforceProdCredentialPath,
-          'utf-8'
-        )
-      );
+      const salesforceCredential = await SalesforceAuth.findOne({
+        _id: id,
+      });
 
       const interospectConfig: AxiosRequestConfig = {
         method: 'POST',
         data: querystring.stringify({
-          token: salesforceCredential.access_token,
+          token: salesforceCredential.accessToken,
           client_id: SALESFORCE_CLIENT_ID,
           client_secret: SALESFORCE_CLIENT_SECRET,
           token_type_hint: 'access_token',
@@ -98,7 +101,7 @@ export class Salesforce implements ISalesforce {
       };
 
       const interospectResponse = await axios(
-        `${salesforceCredential.instance_url}/services/oauth2/introspect`,
+        `${salesforceCredential.instanceUrl}/services/oauth2/introspect`,
         interospectConfig
       );
 
@@ -114,7 +117,7 @@ export class Salesforce implements ISalesforce {
           grant_type: 'refresh_token',
           client_id: SALESFORCE_CLIENT_ID,
           client_secret: SALESFORCE_CLIENT_SECRET,
-          refresh_token: encodeURIComponent(salesforceCredential.refresh_token),
+          refresh_token: encodeURIComponent(salesforceCredential.refreshToken),
         }),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -122,25 +125,34 @@ export class Salesforce implements ISalesforce {
       };
 
       const response = await axios(
-        `${salesforceCredential.instance_url}/services/oauth2/token`,
+        `${salesforceCredential.instanceUrl}/services/oauth2/token`,
         requestConfig
       );
-      fs.writeFileSync(
-        isSandbox
-          ? salesforceSandboxCredentialPath
-          : salesforceProdCredentialPath,
-        JSON.stringify(response.data)
-      );
-      return response.data as TokenResponse;
+
+      const {
+        access_token: accessToken,
+        instance_url: instanceUrl,
+        refresh_token: refreshToken,
+      } = response.data as TokenResponse;
+
+      const credentials = await SalesforceAuth.findOneAndUpdate({
+        _id: salesforceCredential._id,
+        accessToken: accessToken,
+        instanceUrl: instanceUrl,
+        refreshToken: refreshToken,
+        isSandbox: isSandbox,
+      });
+
+      return credentials as ISalesforceAuth;
     } catch (error) {
       throw new Error(error.message);
     }
   }
 
-  async setTokenInFile(
+  async setAuthorizedToken(
     code: string,
     isSandbox: boolean
-  ): Promise<TokenResponse> {
+  ): Promise<ISalesforceAuth> {
     const config: AxiosRequestConfig = {
       method: 'POST',
       data: querystring.stringify({
@@ -162,13 +174,17 @@ export class Salesforce implements ISalesforce {
       config
     );
     const { data } = response as { data: TokenResponse };
-    fs.writeFileSync(
-      isSandbox
-        ? salesforceSandboxCredentialPath
-        : salesforceProdCredentialPath,
-      JSON.stringify(data)
-    );
 
-    return data;
+    const credentials = await SalesforceAuth.create({
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      instanceUrl: data.instance_url,
+      isSandbox: isSandbox,
+    });
+
+    if (!credentials)
+      throw new Error(`Can't create salesforce auth credentials`);
+
+    return credentials as ISalesforceAuth;
   }
 }

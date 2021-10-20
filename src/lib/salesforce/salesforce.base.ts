@@ -10,7 +10,7 @@ import {
   SALESFORCE_SANDBOX_HOST,
 } from '../../utils/config';
 
-import SalesforceAuth, {
+import SalesforceAuthModel, {
   ISalesforceAuth,
 } from '../../schema/salesforceAuth.schema';
 export interface ISalesforce {
@@ -83,8 +83,8 @@ export class Salesforce implements ISalesforce {
     id: string
   ): Promise<ISalesforceAuth> {
     try {
-      const salesforceCredential = await SalesforceAuth.findOne({
-        _id: id,
+      const salesforceCredential = await SalesforceAuthModel.findOne({
+        id,
       });
 
       const interospectConfig: AxiosRequestConfig = {
@@ -135,7 +135,7 @@ export class Salesforce implements ISalesforce {
         refresh_token: refreshToken,
       } = response.data as TokenResponse;
 
-      const credentials = await SalesforceAuth.findOneAndUpdate({
+      const credentials = await SalesforceAuthModel.findOneAndUpdate({
         _id: salesforceCredential._id,
         accessToken: accessToken,
         instanceUrl: instanceUrl,
@@ -175,7 +175,7 @@ export class Salesforce implements ISalesforce {
     );
     const { data } = response as { data: TokenResponse };
 
-    const credentials = await SalesforceAuth.create({
+    const credentials = await SalesforceAuthModel.create({
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
       instanceUrl: data.instance_url,

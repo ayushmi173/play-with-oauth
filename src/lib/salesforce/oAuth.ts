@@ -1,5 +1,4 @@
 import { ISalesforceAuth } from '../../schema/salesforceAuth.schema';
-import { TokenResponse } from '../../types';
 
 import {
   SALESFORCE_CLIENT_ID,

@@ -1,8 +1,7 @@
-import * as fs from 'fs';
 import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 
-import { googleSheetCredentialPath } from '../../utils/helpers';
+import GoogleSheetAuthModel from '../../schema/googleSheetAuth.schema';
 
 import {
   GOOGLE_CLIENT_ID,
@@ -25,8 +24,9 @@ export interface IOAuth {
 
   /**
    * Read token.json via fs and setting those credential in OAuthClient
+   * @param id auth document _id in googlesheet model
    */
-  setCredential(): void;
+  setCredential(id: string): Promise<void>;
 
   /**
    * return auth client variable
@@ -48,18 +48,9 @@ export class OAuth implements IOAuth {
 
   async authorize(): Promise<string | undefined> {
     const tokenUrl: string | undefined = await new Promise((resolve) =>
-      fs.readFile(
-        googleSheetCredentialPath,
-        { encoding: 'utf8' },
-        (err: Error, credentials: string) => {
-          if (err) {
-            return resolve(this.getNewToken(this.oAuthClient));
-          }
-          this.oAuthClient.setCredentials(JSON.parse(credentials));
-          return resolve(undefined);
-        }
-      )
+      resolve(this.getNewToken(this.oAuthClient))
     );
+
     return tokenUrl;
   }
 
@@ -72,13 +63,15 @@ export class OAuth implements IOAuth {
     return authUrl;
   }
 
-  setCredential(): void {
-    const credentials: string = fs.readFileSync(
-      googleSheetCredentialPath,
-      'utf-8'
-    );
+  async setCredential(id: string): Promise<void> {
+    const credentials = await GoogleSheetAuthModel.findOne({
+      id,
+    });
+
+    if (!credentials) throw new Error(`Can't set credential of google sheet`);
+
     this.oAuthClient.setCredentials({
-      refresh_token: JSON.parse(credentials).refresh_token,
+      refresh_token: credentials.refreshToken,
     });
   }
 

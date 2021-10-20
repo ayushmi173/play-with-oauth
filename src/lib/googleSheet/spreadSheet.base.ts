@@ -6,17 +6,20 @@ export interface ISpreadSheet {
   /**
    * Creating new spreadsheet
    * @param title For creating spread sheet with same name
+   * @param id Auth document _id in googlesheet model
    * @return Resource that represents a spreadsheet
    */
-  createSheet(title: string): Promise<sheets_v4.Schema$Spreadsheet>;
+  createSheet(title: string, id: string): Promise<sheets_v4.Schema$Spreadsheet>;
 
   /**
    * Creating new row in the spreadsheet
    * @param params Parameters for creating new row
+   * @param id Auth document _id in googlesheet model
    * @return The response when updating a range of values in a spreadsheet.
    */
   createRow(
-    params: sheets_v4.Params$Resource$Spreadsheets$Values$Append
+    params: sheets_v4.Params$Resource$Spreadsheets$Values$Append,
+    id: string
   ): Promise<sheets_v4.Schema$AppendValuesResponse>;
 }
 
@@ -28,9 +31,10 @@ export class Spreadsheet implements ISpreadSheet {
   }
 
   async createRow(
-    params: sheets_v4.Params$Resource$Spreadsheets$Values$Append
+    params: sheets_v4.Params$Resource$Spreadsheets$Values$Append,
+    id: string
   ): Promise<sheets_v4.Schema$AppendValuesResponse> {
-    this.oAuth.setCredential();
+    await this.oAuth.setCredential(id);
 
     const response = await google
       .sheets({ version: 'v4', auth: this.oAuth.getAuthClient() })
@@ -39,8 +43,11 @@ export class Spreadsheet implements ISpreadSheet {
     return response.data;
   }
 
-  async createSheet(title: string): Promise<sheets_v4.Schema$Spreadsheet> {
-    this.oAuth.setCredential();
+  async createSheet(
+    title: string,
+    id: string
+  ): Promise<sheets_v4.Schema$Spreadsheet> {
+    await this.oAuth.setCredential(id);
 
     const request: sheets_v4.Params$Resource$Spreadsheets$Create = {
       requestBody: {

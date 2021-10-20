@@ -1,10 +1,3 @@
-import path from 'path';
-
-export const googleSheetCredentialPath = path.join(
-  __dirname,
-  '../credentials/googleSheet.credential.json'
-);
-
 export enum COLORS {
   Reset = '\x1b[0m',
   Bright = '\x1b[1m',
